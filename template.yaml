@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create a Launch Template and an Auto Scaling Group (ASG)
+
+Resources:
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${BaseName}-LaunchTemplate"
+      LaunchTemplateData:
+        InstanceType: t3.micro
+        ImageId: ami-0c55b159cbfafe01e # Replace with a valid AMI ID
+        KeyName: !Ref KeyName # Ensure you have a KeyName parameter defined
+        SecurityGroupIds:
+          - !Ref MySecurityGroup # Ensure you have a SecurityGroup defined
+
+  MyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${BaseName}-ASG"
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: "$Latest"
+      MinSize: 1
+      MaxSize: 5
+      DesiredCapacity: !Ref DesiredCapacity # Ensure you have a DesiredCapacity parameter defined
+      VPCZoneIdentifier:
+        - !Ref SubnetId # Ensure you have a SubnetId parameter defined
+
+Parameters:
+  BaseName:
+    Type: String
+    Description: Base name for the created artifacts
+  KeyName:
+    Type: String
+    Description: Name of an existing EC2 KeyPair
+  DesiredCapacity:
+    Type: Number
+    Default: 1
+    Description: Desired number of instances in the ASG
+  SubnetId:
+    Type: String
+    Description: Subnet ID for the ASG
